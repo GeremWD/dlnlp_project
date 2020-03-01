@@ -46,20 +46,24 @@ def train_model(model, epochs, train_data, train_masks, train_targets, dev_data,
             torch.nn.utils.clip_grad_value_(model.parameters(), 5.)
             optimizer.step()
 
-        dev_tensor = torch.Tensor(dev_data[0])
-        dev_pred = model(dev_data, dev_masks)
-        dev_loss = loss(dev_pred, dev_targets).item() / len(dev_data)
+        dev_pred = model(torch.Tensor(dev_data).float(), torch.Tensor(dev_masks))
+        dev_loss = loss(dev_pred.view((-1, 5)), torch.LongTensor(dev_targets).view((-1,))).item()
         train_loss =  train_loss.item() / len(train_data)
         print("train_loss : ", train_loss, "dev_loss : ", dev_loss)
 
 
 if __name__=='__main__':
-    train_data = np.load("data/train_inputset.npy")
-    train_masks = np.load("data/train_masks.npy")
+    train_data = np.load("data/train_embeddings.npy")
+    train_masks = np.array(np.load("data/train_masks.npy"), dtype=np.uint8)
     train_targets = np.load("data/train_targets.npy")
-    dev_data = np.load("data/testa_inputset.npy")
-    dev_masks = np.load("data/testa_masks.npy")
+    dev_data = np.load("data/testa_embeddings.npy")
+    dev_masks = np.array(np.load("data/testa_masks.npy"), dtype=np.uint8)
     dev_targets = np.load("data/testa_targets.npy")
     embedding_dim = train_data.shape[2]
     model = TransformerEncoder(2, embedding_dim, 8, 2*embedding_dim, 0.15, 5).float()
+
+    #test_pred = model(torch.Tensor(train_data[:1]).float(), torch.Tensor(dev_masks[:1]))
+    #print(dev_masks[0])
+    #print(test_pred)
+
     train_model(model, 10, train_data, train_masks, train_targets, dev_data, dev_masks, dev_targets, 0.001, 16)

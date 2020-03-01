@@ -8,7 +8,9 @@ class RelativeEmbedding(nn.Module):
     def forward(self, input):
         """Input is expected to be of size [bsz x seqlen].
         """
+
         bsz, seq_len = input.size()
+
         max_pos = self.padding_idx + seq_len
         if max_pos > self.origin_shift:
             # recompute/expand embeddings if needed
@@ -57,8 +59,8 @@ class RelativeSinusoidalPositionalEmbedding(RelativeEmbedding):
         """
         half_dim = embedding_dim // 2
         emb = math.log(10000) / (half_dim - 1)
-        emb = torch.exp(torch.arange(half_dim) * -emb)
-        emb = torch.arange(-num_embeddings//2, num_embeddings//2).unsqueeze(1) * emb.unsqueeze(0)
+        emb = torch.exp(torch.arange(half_dim, out=torch.FloatTensor()) * -emb)
+        emb = torch.arange(-num_embeddings//2, num_embeddings//2, out=torch.FloatTensor()).unsqueeze(1) * emb.unsqueeze(0)
         emb = torch.cat([torch.sin(emb), torch.cos(emb)], dim=1).view(num_embeddings, -1)
         if embedding_dim % 2 == 1:
             # zero pad
@@ -101,6 +103,7 @@ class RelativeMultiHeadAttn(nn.Module):
         """
 
         batch_size, max_len, d_model = x.size()
+
         pos_embed = self.pos_embed(mask)  # l x head_dim
         qv = self.qv_linear(x)  # batch_size x max_len x d_model2
         q, v = torch.chunk(qv, chunks=2, dim=-1)

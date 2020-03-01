@@ -31,12 +31,12 @@ def preprocess(model_name, input_name, embeddings_name, masks_name, targets_name
     max_len = max(len(s) for s in targets)
 
     embeddings_tensor = np.zeros((len(targets), max_len, d))
-    masks_tensor = np.zeros((len(targets), max_len), dtype='bool')
+    masks_tensor = np.full((len(targets), max_len), True, dtype='bool')
     targets_tensor = np.zeros((len(targets), max_len), dtype='int')
     for i in range(len(targets)):
         assert len(embeddings[i]) > 0, i
         embeddings_tensor[i, :len(embeddings[i]), :] = embeddings[i]
-        masks_tensor[i, len(embeddings[i]):] = True
+        masks_tensor[i, len(embeddings[i]):] = False
         targets_tensor[i, :len(embeddings[i])] = targets[i]
 
     np.save(embeddings_name, embeddings_tensor)
