@@ -3,6 +3,7 @@ import torch
 from torch import nn
 import numpy as np
 from sklearn.metrics import f1_score
+import matplotlib.pyplot as plt
 
 
 def train_model(model, epochs, train_data, train_masks, train_targets, dev_data, dev_masks, dev_targets, lr, batch_size):
@@ -13,11 +14,12 @@ def train_model(model, epochs, train_data, train_masks, train_targets, dev_data,
     dev_targets = torch.LongTensor(dev_targets)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    loss = nn.CrossEntropyLoss()
+    loss = nn.CrossEntropyLoss(ignore_index=0, size_average=True)
 
     # Set model in training mode
     model.train()
-
+    x = []
+    y = []
     for i in range(epochs):
         # Shuffle train data 
         n_examples = len(train_data)-(len(train_data)%batch_size)
@@ -44,15 +46,32 @@ def train_model(model, epochs, train_data, train_masks, train_targets, dev_data,
             loss_val.backward()
             torch.nn.utils.clip_grad_value_(model.parameters(), 5.)
             optimizer.step()
-            if j % 100 == 0:
-                dev_pred = model(dev_data, dev_masks)
-                dev_loss = loss(dev_pred.view((-1, 5)), dev_targets.view(-1,)).item()
-                _, predicted = torch.max(dev_pred, 2)
-                total = dev_targets.view((-1,)).size(0)
-                dev_accuracy = (predicted == dev_targets).sum().item() / total
-                dev_f1 = f1_score(dev_targets.view((-1,)), predicted.view((-1,)), average='weighted')
-                train_loss =  train_loss.item() / len(train_data)
-                print("Epoch", i, " train_loss :", train_loss, " dev_loss :", dev_loss, " dev_accuracy :", dev_accuracy, " dev_f1 :", dev_f1)
+            
+        dev_pred = model(dev_data, dev_masks)
+        dev_loss = loss(dev_pred.view((-1, 5)), dev_targets.view(-1,)).item()
+        _, predicted = torch.max(dev_pred, 2)
+        total = dev_targets.view((-1,)).size(0)
+        dev_accuracy = (predicted == dev_targets).sum().item() / total
+        precision = ((predicted > 0) * (predicted == dev_targets)).sum().item()
+        precision_total = (predicted > 0).sum().item()
+        if precision_total > 0:
+            precision /= precision_total
+        recall = ((dev_targets > 0) * (predicted == dev_targets)).sum().item()
+        recall_total = (dev_targets > 0).sum().item()
+        if recall_total > 0:
+            recall /= recall_total
+        dev_f1 = (2 * precision * recall)
+        if recall + precision > 0:
+            dev_f1 /= recall + precision
+
+        train_loss =  train_loss.item() / len(train_data)
+        x.append(i+j * batch_size / len(batches_x))
+        y.append(dev_f1)
+        print("Epoch", i+1, " train_loss :", train_loss, " dev_loss :", dev_loss, " dev_accuracy :", dev_accuracy, " dev_f1 :", dev_f1)
+
+    plt.xlabel("Epochs")
+    plt.ylabel("F1 score")
+    plt.plot(x, y)
 
 
 if __name__=='__main__':
@@ -64,4 +83,5 @@ if __name__=='__main__':
     dev_targets = np.load("data/testa_targets.npy")
     embedding_dim = train_data.shape[2]
     model = TransformerEncoder(2, embedding_dim, 8, 2*embedding_dim, 0.15, 5).float()
-    train_model(model, 10, train_data, train_masks, train_targets, dev_data, dev_masks, dev_targets, 0.001, 16)
+    train_model(model, 5, train_data, train_masks, train_targets, dev_data, dev_masks, dev_targets, 0.001, 16)
+    
