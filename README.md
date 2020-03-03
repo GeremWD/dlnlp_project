@@ -1,6 +1,6 @@
 # Adapting Transformer Encoder for Named Entity Recognition
 
-Here is our attempt to reproduce parts of the results from the paper https://arxiv.org/pdf/1911.04474.pdf
+Here is our attempt to reproduce part of the results from the paper https://arxiv.org/pdf/1911.04474.pdf
 
 
 ## Usage
