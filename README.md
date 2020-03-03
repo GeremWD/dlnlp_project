@@ -20,4 +20,5 @@ python build_fasttext_model.py
 ```
 
 To train the model (the preprocessing shoud have been done first) :  
-`python train.py`
+`python train.py`  
+The file is made to use cuda but you can easily change that by removing the several `.cuda()` in `train.py`.
