@@ -14,7 +14,7 @@ def train_model(model, epochs, train_data, train_masks, train_targets, dev_data,
     dev_targets = torch.LongTensor(dev_targets)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    loss = nn.CrossEntropyLoss(ignore_index=0, size_average=True)
+    loss = nn.CrossEntropyLoss(ignore_index=-1)
 
     # Set model in training mode
     model.train()
@@ -65,7 +65,7 @@ def train_model(model, epochs, train_data, train_masks, train_targets, dev_data,
             dev_f1 /= recall + precision
 
         train_loss =  train_loss.item() / len(train_data)
-        x.append(i+j * batch_size / len(batches_x))
+        x.append(i+1)
         y.append(dev_f1)
         print("Epoch", i+1, " train_loss :", train_loss, " dev_loss :", dev_loss, " dev_accuracy :", dev_accuracy, " dev_f1 :", dev_f1)
 

@@ -32,7 +32,7 @@ def preprocess(model_name, input_name, embeddings_name, masks_name, targets_name
 
     embeddings_tensor = np.zeros((len(targets), max_len, d))
     masks_tensor = np.full((len(targets), max_len), True, dtype='bool')
-    targets_tensor = np.zeros((len(targets), max_len), dtype='int')
+    targets_tensor = np.full((len(targets), max_len), -1, dtype='int')
     for i in range(len(targets)):
         assert len(embeddings[i]) > 0, i
         embeddings_tensor[i, :len(embeddings[i]), :] = embeddings[i]
