@@ -1,6 +1,8 @@
 
 import fasttext
 import numpy as np
+import sys
+
 
 def preprocess(model_name, input_name, embeddings_name, masks_name, targets_name, max_sentence_len):
     model = fasttext.load_model(model_name)
@@ -44,7 +46,7 @@ def preprocess(model_name, input_name, embeddings_name, masks_name, targets_name
     np.save(targets_name, targets_tensor)
 
 if __name__ == '__main__':
-    preprocess("data/fasttext_model.bin", "data/conll/eng.train.txt", "data/train_embeddings", "data/train_masks", "data/train_targets", 32)
-    preprocess("data/fasttext_model.bin", "data/conll/eng.testa.txt", "data/testa_embeddings", "data/testa_masks", "data/testa_targets", 32)
-    preprocess("data/fasttext_model.bin", "data/conll/eng.testb.txt", "data/testb_embeddings", "data/testb_masks", "data/testb_targets", 32)
+    preprocess(sys.argv[1], "data/conll/eng.train.txt", "data/train_embeddings", "data/train_masks", "data/train_targets", 32)
+    preprocess(sys.argv[1], "data/conll/eng.testa.txt", "data/testa_embeddings", "data/testa_masks", "data/testa_targets", 32)
+    preprocess(sys.argv[1], "data/conll/eng.testb.txt", "data/testb_embeddings", "data/testb_masks", "data/testb_targets", 32)
 
