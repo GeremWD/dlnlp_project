@@ -8,7 +8,6 @@ class RelativeEmbedding(nn.Module):
     def forward(self, input):
         """Input is expected to be of size [bsz x seqlen].
         """
-
         bsz, seq_len = input.size()
 
         max_pos = self.padding_idx + seq_len

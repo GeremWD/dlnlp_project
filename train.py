@@ -9,27 +9,27 @@ import matplotlib.pyplot as plt
 def train_model(model, epochs, train_data, train_masks, train_targets, dev_data, dev_masks, dev_targets, lr, batch_size):
     max_len = train_data.shape[1]
     embedding_dim = train_data.shape[2]
-    dev_data = torch.Tensor(dev_data).float()
-    dev_masks = torch.Tensor(dev_masks)
-    dev_targets = torch.LongTensor(dev_targets)
+    dev_data = torch.Tensor(dev_data).float().cuda()
+    dev_masks = torch.Tensor(dev_masks).cuda()
+    dev_targets = torch.LongTensor(dev_targets).cuda()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     loss = nn.CrossEntropyLoss(ignore_index=-1)
+
+    # Shuffle train data 
+    n_examples = len(train_data)-(len(train_data)%batch_size)
+    # Shuffle index
+    p = np.random.permutation(n_examples)
+    # Get all batches in array form
+    batches_x = torch.from_numpy(train_data[:n_examples][p].reshape(-1, batch_size, max_len, embedding_dim)).float().cuda()
+    batches_mask = torch.from_numpy(train_masks[:n_examples][p].reshape(-1, batch_size, max_len)).cuda()
+    batches_y = torch.from_numpy(train_targets[:n_examples][p].reshape(-1, batch_size, max_len)).cuda()
 
     # Set model in training mode
     model.train()
     x = []
     y = []
     for i in range(epochs):
-        # Shuffle train data 
-        n_examples = len(train_data)-(len(train_data)%batch_size)
-        # Shuffle index
-        p = np.random.permutation(n_examples)
-        # Get all batches in array form
-        batches_x = torch.from_numpy(train_data[:n_examples][p].reshape(-1, batch_size, max_len, embedding_dim)).float()
-        batches_mask = torch.from_numpy(train_masks[:n_examples][p].reshape(-1, batch_size, max_len))
-        batches_y = torch.from_numpy(train_targets[:n_examples][p].reshape(-1, batch_size, max_len))
-        
         train_loss = 0
         j = 0
         for batch_x, batch_mask, batch_y in zip(batches_x, batches_mask, batches_y):
@@ -82,6 +82,6 @@ if __name__=='__main__':
     dev_masks = np.array(np.load("data/testa_masks.npy"), dtype=np.uint8)
     dev_targets = np.load("data/testa_targets.npy")
     embedding_dim = train_data.shape[2]
-    model = TransformerEncoder(2, embedding_dim, 8, 2*embedding_dim, 0.15, 5).float()
-    train_model(model, 5, train_data, train_masks, train_targets, dev_data, dev_masks, dev_targets, 0.001, 16)
+    model = TransformerEncoder(2, embedding_dim, 8, 2*embedding_dim, 0.15, 5).float().cuda()
+    train_model(model, 20, train_data, train_masks, train_targets, dev_data, dev_masks, dev_targets, 0.01, 16)
     
